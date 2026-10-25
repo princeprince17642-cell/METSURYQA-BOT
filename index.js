@@ -1,6 +1,5 @@
 const express = require('express');
 const axios = require('axios');
-const TelegramBot = require('node-telegram-bot-api');
 
 const app = express();
 app.use(express.json());
@@ -10,9 +9,8 @@ const PIXEL_ID = '2394103828073019';
 const META_CAPI_TOKEN = 'EAAQN2SBc9fYBS4emSyjpvw8ZC1QqzJHx8sR0BkNc5EX88dbZC4i716lvqV4rSUJBZAFfwWyyrP3ZAdmufGGXOGvS4qZCRxewYLUjZCXUQZByxfBgfSkY4oyXow8ZCAMvo1SIdTR9haZCAykugitIS9wLkbeiZC49twZAJ1rihZBPICp72MSMqyPJvMcrE3uTe4CTGQZDZD';
 const TELEGRAM_BOT_TOKEN = '8635023714:AAGGrfnRui61L_h8omThYgLXnPmIJYATYxM';
 const CHANNEL_INVITE_LINK = 'https://t.me/+hIBCZJfuZ6Y0Y2U1';
-const BOT_USERNAME = 'SuryaVIPBot'; // यहाँ अपने बोट का सही यूजरनेम डाल दें
+const BOT_USERNAME = 'SuryaVIPRedirectBot';
 
-const bot = new TelegramBot(TELEGRAM_BOT_TOKEN, { polling: true });
 const pendingSessions = new Map();
 
 async function sendMetaCapiEvent(eventId, userData) {
@@ -44,7 +42,7 @@ async function sendMetaCapiEvent(eventId, userData) {
 }
 
 app.get('/redirect', (req, res) => {
-  const eventId = req.query.event_id || `evt_${Date.now()}_${Math.random().toString(36.substring(2, 7))}`;
+  const eventId = req.query.event_id || `evt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
   const userIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
   const userAgent = req.headers['user-agent'];
 
@@ -52,23 +50,42 @@ app.get('/redirect', (req, res) => {
   res.redirect(`https://t.me/${BOT_USERNAME}?start=${eventId}`);
 });
 
-bot.onText(/\/start (.+)/, async (msg, match) => {
-  const chatId = msg.chat.id;
-  const eventId = match[1];
+app.post(`/webhook/${TELEGRAM_BOT_TOKEN}`, async (req, res) => {
+  const update = req.body;
+  
+  if (update.message && update.message.text) {
+    const chatId = update.message.chat.id;
+    const text = update.message.text;
 
-  if (eventId && pendingSessions.has(eventId)) {
-    const session = pendingSessions.get(eventId);
-    await sendMetaCapiEvent(eventId, session);
-    pendingSessions.delete(eventId);
-  }
+    if (text.startsWith('/start ')) {
+      const eventId = text.split(' ')[1];
 
-  bot.sendMessage(chatId, '✅ Welcome to SURYA NUMBER KING VIP!\nClick below to join the channel:', {
-    reply_markup: {
-      inline_keyboard: [
-        [{ text: '🚀 JOIN CHANNEL NOW', url: CHANNEL_INVITE_LINK }]
-      ]
+      if (eventId && pendingSessions.has(eventId)) {
+        const session = pendingSessions.get(eventId);
+        await sendMetaCapiEvent(eventId, session);
+        pendingSessions.delete(eventId);
+      }
+
+      try {
+        await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+          chat_id: chatId,
+          text: '✅ Welcome to SURYA NUMBER KING VIP!\nClick below to join the channel:',
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: '🚀 JOIN CHANNEL NOW', url: CHANNEL_INVITE_LINK }]
+            ]
+          }
+        });
+      } catch (err) {
+        console.error('Telegram Send Error:', err.message);
+      }
     }
-  });
+  }
+  res.sendStatus(200);
+});
+
+app.get('/', (req, res) => {
+  res.send('Server is running smoothly!');
 });
 
 app.listen(PORT, () => {
