@@ -4,10 +4,9 @@ const app = express();
 
 const PORT = process.env.PORT || 3000;
 
-// यहाँ अपने चैनल का असली 'Request to Join' वाला इनवाइट लिंक डाल दे
-const CHANNEL_JOIN_REQUEST_LINK = "https://t.me/+YOUR_CHANNEL_JOIN_REQUEST_LINK_HERE";
+// तेरा चैनल का असली Request to Join लिंक
+const CHANNEL_JOIN_REQUEST_LINK = "https://t.me/+hIBCZJfuZ6Y0Y2U1";
 
-// Meta CAPI Credentials (तू चाहें तो इन्हें environment variables में भी रख सकता है)
 const PIXEL_ID = "2394103828073019";
 const ACCESS_TOKEN = process.env.FB_ACCESS_TOKEN || "YOUR_META_CAPI_ACCESS_TOKEN";
 
@@ -16,7 +15,7 @@ app.get('/redirect', async (req, res) => {
     const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     const clientUserAgent = req.headers['user-agent'];
 
-    // Meta Conversions API (CAPI) को सर्वर साइड से इवेंट भेजना
+    // Meta Conversions API (CAPI) पर Subscribe इवेंट भेजना
     try {
         await axios.post(`https://graph.facebook.com/v19.0/${PIXEL_ID}/events`, {
             data: [
@@ -38,7 +37,7 @@ app.get('/redirect', async (req, res) => {
         console.error("CAPI Error:", error.response?.data || error.message);
     }
 
-    // यूजर को सीधे Telegram Channel की Request to Join लिंक पर भेज देना
+    // यूजर को सीधे Telegram Channel की Request to Join लिंक पर भेजना
     res.redirect(302, CHANNEL_JOIN_REQUEST_LINK);
 });
 
