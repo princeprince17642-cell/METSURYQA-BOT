@@ -53,8 +53,8 @@ app.get('/redirect', (req, res) => {
   const userIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
   const userAgent = req.headers['user-agent'];
 
-  const botUsername = 'your_bot_username'; // बोट का यूज़रनेम यहाँ डालें (बिना @ के)
-  const botRedirectUrl = `https://t.me/${botUsername}?start=${eventId}`;
+  const botUsername = '@SuryaVIPRedirectBot'; // बोट का यूज़रनेम यहाँ डालें (बिना @ के)
+  const botRedirectUrl = `https://t.me/${@SuryaVIPRedirectBot}?start=${eventId}`;
 
   // Store Session
   pendingSessions.set(eventId, { ip: userIp, userAgent, timestamp: Date.now() });
